@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+psycopg2-binary
+ldap3
+jinja2
+weasyprint
+pandas
+openpyxl
+pydantic
+
