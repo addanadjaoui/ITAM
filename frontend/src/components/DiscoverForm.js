@@ -5,13 +5,13 @@ export default function App() {
   const [loading, setLoading] = useState(false);
 
   const loadAssets = () => {
-    fetch("http://192.168.56.110:8000/assets")
+    fetch("http://192.168.56.110:8000/api/assets")
       .then(r => r.json())
       .then(setAssets);
   };
 
   const discoverAD = async () => {
-    await fetch("http://192.168.56.110:8000/discover?mode=ad", { method: "POST" });
+    await fetch("http://192.168.56.110:8000/api/discover?mode=ad", { method: "POST" });
     loadAssets();
   };
 
