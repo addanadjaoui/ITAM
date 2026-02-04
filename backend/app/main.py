@@ -16,8 +16,14 @@ app.add_middleware(
 )
 
 # API assets
-app.include_router(assets_router)
+# app.include_router(assets_router)
+app.include_router(assets_router, prefix="/api")
 
+# Health
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
+    
 # Rapports
 @app.get("/reports/pdf")
 def pdf_report():
