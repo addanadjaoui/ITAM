@@ -6,32 +6,26 @@ export default function App() {
   const [ip_address, setIp] = useState("");
 
   const loadAssets = () => {
-<<<<<<< HEAD
     fetch("http://192.168.56.110:8000/api/assets")
       .then(r => r.json())
-=======
-    fetch("http://192.168.56.110:8000/assets")
+    fetch("http://192.168.56.110:8000/api/assets")
       .then((r) => r.json())
->>>>>>> 2013531 (Local changes to DiscoverForm)
       .then(setAssets);
   };
 
   const discoverAD = async () => {
-<<<<<<< HEAD
     await fetch("http://192.168.56.110:8000/api/discover?mode=ad", { method: "POST" });
-=======
-    await fetch("http://192.168.56.110:8000/discover?mode=ad", {
+    await fetch("http://192.168.56.110:8000/api/discover?mode=ad", {
       method: "POST",
     });
->>>>>>> 2013531 (Local changes to DiscoverForm)
     loadAssets();
   };
 
   const discoverNetwork = async () => {
-    const subnet = prompt("Subnet à scanner (ex: 192.168.56.0/24)");
+    const subnet = prompt("Subnet à scanner (ex : 192.168.56.0/24)");
     if (!subnet) return;
     await fetch(
-      `http://192.168.56.110:8000/discover?mode=network&subnet=${subnet}`,
+      `http://192.168.56.110:8000/api/discover?mode=network&subnet=${subnet}`,
       { method: "POST" }
     );
     loadAssets();
