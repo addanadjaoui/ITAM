@@ -33,7 +33,7 @@ export default function App() {
 
   const discoverNow = async () => {
     setLoading(true);
-    const res = await fetch("http://192.168.56.110:8000/discover", {
+    const res = await fetch("http://192.168.56.110:8000/api/discover", {
       method: "POST",
     });
     const data = await res.json();
@@ -45,15 +45,15 @@ export default function App() {
   useEffect(loadAssets, []);
 
   return (
-    <div className="actions">
-      <input
-        placeholder="IP"
+    <div className="actions"> 
+      <input 
+        place holder="IP"
         value={ip_address}
         onChange={(e) => setIp(e.target.value)}
       />
 
       <div className="buttons">
-        <button onClick={discoverNow} disabled={loading}>
+        <butto n onClick={discoverNow} disabled={loading}>
           {loading ? "Découverte en cours..." : "Découvrir les assets (AD)"}
         </button>
 
