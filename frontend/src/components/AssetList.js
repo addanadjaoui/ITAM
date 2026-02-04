@@ -4,7 +4,7 @@ export default function AssetList() {
   const [assets, setAssets] = useState([]);
 
   useEffect(() => {
-    fetch("http://192.168.56.110:8000/assets")
+    fetch("http://192.168.56.110:8000/api/assets")
       .then((res) => res.json())
       .then(setAssets);
   }, []);
