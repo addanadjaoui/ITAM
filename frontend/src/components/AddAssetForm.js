@@ -8,7 +8,7 @@ export default function AddAssetForm() {
 
   const submit = async (e) => {
     e.preventDefault();
-    await fetch("http://192.168.56.110:8000/assets", {
+    await fetch("http://192.168.56.110:8000/api/assets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ hostname, type, ip_address, os }),
