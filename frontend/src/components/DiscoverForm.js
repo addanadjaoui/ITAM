@@ -51,12 +51,10 @@ export default function App() {
         value={ip_address}
         onChange={(e) => setIp(e.target.value)}
       />
-
       <div className="buttons">
-        <butto n onClick={discoverNow} disabled={loading}>
+        <button onClick={discoverNow} disabled={loading}>
           {loading ? "Découverte en cours..." : "Découvrir les assets (AD)"}
         </button>
-
         <button onClick={discoverNetwork}>Découverte Réseau</button>
       </div>
     </div>

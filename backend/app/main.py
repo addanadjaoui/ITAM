@@ -41,6 +41,10 @@ def excel_report():
         "assets": assets
     }
 
+    upsert_asset(asset)
+    return {"message": "Asset stored"}
+
+
 @app.post("/discover")
 def discover(mode: str = "ad", subnet: str = None):
     if mode == "ad":
