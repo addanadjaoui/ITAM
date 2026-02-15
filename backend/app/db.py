@@ -68,7 +68,7 @@ def upsert_asset(asset: dict):
 # ======================================================
 # GET assets (pagination + search)
 # ======================================================
-def get_assets(search="", page=1, limit=20):
+def get_assets(search="", page=1, limit=20, sort="id"):
     offset = (page - 1) * limit
 
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -97,7 +97,6 @@ def get_assets(search="", page=1, limit=20):
             offset
         ))
 
-        # return [{"hostname": h, "type": t, "os": o, "ip": ip, "owner": owner, "status": s} for h,t,o,ip,owner,s in rows]
         return cur.fetchall()
 
 

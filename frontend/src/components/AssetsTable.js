@@ -31,7 +31,7 @@ export default function AssetsTable({ assets }) {
       </thead>
       <tbody>
         {assets.map((a) => (
-          <tr key={`${a.hostname}-${a.ip_address}`}>
+          <tr key ={`${a.hostname}-${a.ip_address}`}>
             <td>{a.hostname}</td>
             <td>{a.os}</td>
             <td>{a.status}</td>

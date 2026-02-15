@@ -107,7 +107,6 @@ export default function AssetList({ searchTerm = "" }) {
               value={sortField}
               onChange={(e) => setSortField(e.target.value)}
             >
-              <option value="id">ID</option>
               <option value="hostname">Hostname</option>
               <option value="ip_address">IP</option>
               <option value="os">OS</option>
