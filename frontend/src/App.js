@@ -1,108 +1,24 @@
-import "./styles.css";
-import React, { useEffect, useState } from "react";
-import KPI from "./components/KPI";
-import AssetList from "./components/AssetList";
-import AddAssetForm from "./components/AddAssetForm";
-import DiscoverForm from "./components/DiscoverForm";
-import logo from "./images/djezzy.png";
+import { Routes, Route, Navigate } from "react-router-dom";
+import MainLayout from "./layout/MainLayout";
 
-const API = "http://192.168.56.110:8000/api";
 
-/* =========================
-   API CALLS
-========================= */
-export const discover = (ip, agent) =>
-  fetch(`${API}/discovery/on-demand?ip=${ip}&agent=${agent}`, {
-    method: "POST",
-  });
+import AssetsPage from "./pages/AssetsPage";
+import DiscoverPage from "./pages/DiscoverPage";
+import DeployPage from "./pages/DeployPage";
 
-export const getAssets = () =>
-  fetch(`${API}/assets`).then((r) => r.json());
+//import "./app.css";
 
-/* =========================
-   APP
-========================= */
+
 export default function App() {
-  const [time, setTime] = useState(new Date().toLocaleString("fr-FR"));
-  const [showDiscover, setShowDiscover] = useState(false);
-  const [showAssets, setShowAssets] = useState(false); //visible par default
-  const [showAddAsset, setShowAddAsset] = useState(false);
-
-  /* CLOCK */
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(new Date().toLocaleString("fr-FR"));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div>
-      {/* ================= NAVBAR ================= */}
-      <nav className="navbar background">
-        <ul className="nav-list">
-          <li className="logo">
-            <img src={logo} alt="Djezzy Logo" />
-          </li>
-
-          <li
-            className={`nav-item ${showAssets ? "active" : ""}`}
-            onClick={() => setShowAssets((prev) => !prev)}
-          >
-            Inventaire
-          </li>
-
-          <li
-            className={`nav-item ${showDiscover ? "active" : ""}`}
-            onClick={() => setShowDiscover((prev) => !prev)}
-          >
-            Découvert
-          </li>
-
-          <li
-            className={`nav-item ${showAddAsset ? "active" : ""}`}
-            onClick={() => setShowAddAsset((prev) => !prev)}
-          >
-            Deployment
-          </li>
-
-          <li className="nav-item">Jobs</li>
-        </ul>
-
-        <div className="rightNav">
-          <input type="text" id="search" placeholder="Search..." />
-          <button className="btn btn-sm">Search</button>
-        </div>
-      </nav>
-
-      {/* ================= HEADER ================= */}
-      <header>
-        <h1>ITAM Enterprise Dashboard</h1>
-        <p className="subtitle">
-          Gestion des actifs IT – Enterprise
-        </p>
-      </header>
-
-      {/* ================= STATS ================= */}
-      <div className="stats-grid" style={{ padding: 30 }}>
-        <div className="stat-card">
-          <KPI />
-          <div className="stat-label">Actifs</div>
-        </div>
-      </div>
-
-      {/* ================= CONTENT ================= */}
-      {showDiscover && <DiscoverForm />}
-      {showAddAsset && <AddAssetForm />}
-      {showAssets && <AssetList />}
-
-      {/* ================= FOOTER ================= */}
-      <footer style={{ marginTop: 20 }}>
-        TO.SystemAdministration: ITAM Enterprise v4 • VM 192.168.56.110 • {time}
-        <br />
-        Djezzy
-      </footer>
-    </div>
+    <MainLayout>
+      <Routes>
+        <Route path="/" element={<Navigate to="/assets" replace />} />
+        <Route path="/assets" element={<AssetsPage />} />
+        <Route path="/discover" element={<DiscoverPage />} />
+        <Route path="/deploy" element={<DeployPage />} />
+      </Routes>
+    </MainLayout>
   );
 }
 

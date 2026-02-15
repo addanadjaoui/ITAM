@@ -96,9 +96,66 @@ def get_assets(search="", page=1, limit=20):
             limit,
             offset
         ))
-
-        # return [{"hostname": h, "type": t, "os": o, "ip": ip, "owner": owner, "status": s} for h,t,o,ip,owner,s in rows]
+        
         return cur.fetchall()
+ 
+#def get_assets(
+#    search="",
+#    page=1,
+#    limit=20,
+#    sort_by="last_seen",
+#    sort_order="desc"
+#):
+#    offset = (page - 1) * limit
+#
+#    # Champs autorisés pour le tri (sécurité SQL)
+#    allowed_sort_fields = {
+#        "hostname": "hostname",
+#        "ip_address": "ip_address",
+#        "os": "os",
+#        "type": "type",
+#        "status": "status",
+#        "source": "source",
+#        "last_seen": "last_seen",
+#    }
+#
+#    # Validation du champ de tri
+#    sort_column = allowed_sort_fields.get(sort_by, "last_seen")
+#
+#    # Validation de l’ordre
+#    sort_order = "ASC" if sort_order.lower() == "asc" else "DESC"
+#
+#    query = f"""
+#        SELECT
+#            id,
+#            hostname,
+#            ip_address::text AS ip_address,
+#            os,
+#            type,
+#            status,
+#            source,
+#            last_seen
+#        FROM assets
+#        WHERE
+#            hostname ILIKE %s
+#            OR ip_address::text ILIKE %s
+#            OR os ILIKE %s
+#        ORDER BY {sort_column} {sort_order}
+#        LIMIT %s OFFSET %s
+#    """
+#
+#    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+#        cur.execute(
+#            query,
+#            (
+#                f"%{search}%",
+#                f"%{search}%",
+#                f"%{search}%",
+#                limit,
+#                offset
+#            )
+#        )
+#        return cur.fetchall()
 
 
 # ======================================================

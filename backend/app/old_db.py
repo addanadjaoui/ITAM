@@ -96,8 +96,8 @@ def get_assets(search="", page=1, limit=20):
             limit,
             offset
         ))
-
-        # return [{"hostname": h, "type": t, "os": o, "ip": ip, "owner": owner, "status": s} for h,t,o,ip,owner,s in rows]
+        
+				#return [{"hostname": h, "type": t, "os": o, "ip": ip, "owner": owner, "status": s} for h,t,o,ip,owner,s in rows]
         return cur.fetchall()
 
 

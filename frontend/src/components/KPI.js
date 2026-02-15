@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 
+const API = "http://192.168.56.110:8000/api/assets";
+
 export default function KPI() {
   const [kpi, setKpi] = useState({});
 
   useEffect(() => {
-    fetch("http://192.168.56.110:8000/api/assets")
+    fetch(`${API}`)
       .then(res => res.json())
       .then(data => {
         const total = data.length;

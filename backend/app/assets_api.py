@@ -1,18 +1,11 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
+from app.models.asset import AssetUpsert
 import psycopg2
 import os
 
 router = APIRouter()
+DATABASE_URL = os.getenv("http:/192.168.56.110")
 conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-
-class Asset(BaseModel):
-    hostname: str
-    type: str
-    os: str
-    ip_address: str = None
-    owner: str = None
-    status: str = "in_use"
 
 # GET all assets
 @router.get("/assets")
@@ -22,12 +15,88 @@ def get_assets():
     rows = cur.fetchall()
     return [{"hostname": h, "type": t, "os": o, "ip": ip, "owner": owner, "status": s} for h,t,o,ip,owner,s in rows]
 
-# POST add asset
+#@router.get("/api/assets")
+#def get_assets(
+#    search: str = "",
+#    page: int = 1,
+#    limit: int = 10,
+#    sort: str | None = None,
+#    order: str = "asc",
+#    db: Session = Depends(get_db)
+#):
+#    query = db.query(Asset)
+#
+#    if search:
+#        query = query.filter(
+#            Asset.hostname.ilike(f"%{search}%") |
+#            Asset.ip_address.ilike(f"%{search}%")
+#        )
+#
+#    total = query.count()
+#
+#    if sort:
+#        column = getattr(Asset, sort, None)
+#        if column is not None:
+#            query = query.order_by(
+#                column.asc() if order == "asc" else column.desc()
+#            )
+#
+#    assets = (
+#        query
+#        .offset((page - 1) * limit)
+#        .limit(limit)
+#        .all()
+#    )
+#
+#    return {
+#        "data": assets,
+#        "total": total
+#    }
+
+
 @router.post("/assets")
-def add_asset(asset: Asset):
-    cur = conn.cursor()
-    cur.execute("INSERT INTO assets(hostname,ip_address,type,os,status) VALUES (%s,%s,%s,%s,%s) RETURNING id",
-                (asset.hostname, asset.ip_address, asset.type, asset.os, asset.status))
-    conn.commit()
-    return {"message": "Asset added", "hostname": asset.hostname, "IP": asset.ip_address}
+def upsert_asset(asset: AssetUpsert):
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO assets (
+                        hostname,
+                        ip_address,
+                        os,
+                        status,
+                        owner,
+                        source,
+                        last_seen
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, now())
+                    ON CONFLICT (hostname, ip_address)
+                    DO UPDATE SET
+                        os        = EXCLUDED.os,
+                        status    = EXCLUDED.status,
+                        owner     = EXCLUDED.owner,
+                        source    = EXCLUDED.source,
+                        last_seen = now()
+                    RETURNING id, hostname, ip_address, status, source;
+                """, (
+                    asset.hostname,
+                    asset.ip_address,
+                    asset.os,
+                    asset.status,
+                    asset.owner,
+                    asset.source
+                ))
+
+                row = cur.fetchone()
+                return {
+                    "id": row[0],
+                    "hostname": row[1],
+                    "ip_address": row[2],
+                    "status": row[3],
+                    "source": row[4],
+                    "action": "upsert"
+                }
+    finally:
+        conn.close()
 

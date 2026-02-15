@@ -1,0 +1,31 @@
+#version: "3.9"
+
+services:
+   postgres:
+     image: postgres:15
+    container_name: itam_postgres
+    environment:
+       POSTGRES_USER: itam
+      POSTGRES_PASSWORD: itam
+      POSTGRES_DB: itam_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+     build: ./backend
+    container_name: itam_backend
+    environment:
+       POSTGRES_USER: itam
+      POSTGRES_PASSWORD: itam
+      POSTGRES_DB: itam_db
+      POSTGRES_HOST: postgres
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
+
