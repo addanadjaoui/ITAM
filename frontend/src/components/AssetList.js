@@ -1,145 +1,155 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import AssetsTable from "./AssetsTable";
 
 const API = "http://192.168.56.110:8000/api/assets";
+const LIMIT = 10;
 
 export default function AssetList({ searchTerm = "" }) {
   const [assets, setAssets] = useState([]);
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
   const [total, setTotal] = useState(0);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [sortEnabled, setSortEnabled] = useState(false);
-  const [sortField, setSortField] = useState("hostname");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  /* =========================
-     FETCH ASSETS
-  ========================= */
+  /* ================= URL STATE ================= */
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+  const sorts = useMemo(() => {
+    const s = searchParams.get("sort");
+    if (!s) return [];
+    return s.split(",").map((x) => {
+      const [field, order] = x.split(":");
+      return { field, order };
+    });
+  }, [searchParams]);
+
+  /* ================= FETCH (backend-ready) ================= */
   useEffect(() => {
-    const controller = new AbortController();
-
     async function loadAssets() {
       try {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(API, { signal: controller.signal });
+        // ⬇️ demain: API?page=X&limit=Y&sort=a:asc,b:desc
+        const res = await fetch(API);
         const data = await res.json();
 
         setAssets(data);
-        setTotal(data.length); // pagination backend plus tard
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          setError(err.message);
-        }
+        setTotal(data.length);
+      } catch (e) {
+        setError(e.message);
       } finally {
         setLoading(false);
       }
     }
-
     loadAssets();
-    return () => controller.abort();
   }, []);
 
-  /* =========================
-     FILTER
-  ========================= */
-  const filteredAssets = assets.filter((a) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-
-    return (
-      a.hostname?.toLowerCase().includes(term) ||
-      a.ip_address?.toLowerCase().includes(term)
+  /* ================= CLIENT FILTER ================= */
+  const filteredAssets = useMemo(() => {
+    if (!searchTerm) return assets;
+    const t = searchTerm.toLowerCase();
+    return assets.filter(
+      (a) =>
+        a.hostname?.toLowerCase().includes(t) ||
+        a.ip_address?.toLowerCase().includes(t)
     );
-  });
+  }, [assets, searchTerm]);
 
-  /* =========================
-     SORT
-  ========================= */
-  const sortedAssets = [...filteredAssets].sort((a, b) => {
-    if (!sortEnabled) return 0;
+  /* ================= CLIENT SORT (temp) ================= */
+  const sortedAssets = useMemo(() => {
+    if (!sorts.length) return filteredAssets;
+    return [...filteredAssets].sort((a, b) => {
+      for (const { field, order } of sorts) {
+        const v1 = a[field] ?? "";
+        const v2 = b[field] ?? "";
+        if (v1 < v2) return order === "asc" ? -1 : 1;
+        if (v1 > v2) return order === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [filteredAssets, sorts]);
 
-    const v1 = a[sortField] || "";
-    const v2 = b[sortField] || "";
+  /* ================= CLIENT PAGINATION (temp) ================= */
+  const totalPages = Math.max(1, Math.ceil(sortedAssets.length / LIMIT));
 
-    return sortOrder === "asc"
-      ? v1.localeCompare(v2)
-      : v2.localeCompare(v1);
-  });
+  const paginatedAssets = useMemo(() => {
+    const start = (page - 1) * LIMIT;
+    return sortedAssets.slice(start, start + LIMIT);
+  }, [sortedAssets, page]);
 
-  /* =========================
-     PAGINATION (frontend temporaire)
-  ========================= */
-  const start = (page - 1) * limit;
-  const paginatedAssets = sortedAssets.slice(start, start + limit);
-  const totalPages = Math.ceil(sortedAssets.length / limit);
+  /* ================= URL HELPERS ================= */
+  const updateParams = useCallback(
+    (params) => setSearchParams(params, { replace: false }),
+    [setSearchParams]
+  );
 
-  /* =========================
-     RENDER STATES
-  ========================= */
-  if (loading) return <p style={{ color: "green" }}>Chargement des assets...</p>;
-  if (error) return <p style={{ color: "red" }}>Erreur : {error}</p>;
+  const handlePageChange = useCallback(
+    (p) => {
+      const params = new URLSearchParams(searchParams);
+      params.set("page", p);
+      updateParams(params);
+    },
+    [searchParams, updateParams]
+  );
+
+  const handleSortChange = useCallback(
+    (field, multi) => {
+      let next = [];
+      const existing = sorts.find((s) => s.field === field);
+
+      if (!multi) {
+        next = [
+          { field, order: existing?.order === "asc" ? "desc" : "asc" },
+        ];
+      } else {
+        if (!existing) {
+          next = [...sorts, { field, order: "asc" }];
+        } else {
+          next = sorts.map((s) =>
+            s.field === field
+              ? { ...s, order: s.order === "asc" ? "desc" : "asc" }
+              : s
+          );
+        }
+      }
+
+      const params = new URLSearchParams(searchParams);
+      params.set(
+        "sort",
+        next.map((s) => `${s.field}:${s.order}`).join(",")
+      );
+      params.set("page", 1);
+      updateParams(params);
+    },
+    [sorts, searchParams, updateParams]
+  );
+
+  if (loading) return <p>Chargement…</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div>
       <h2>Liste des actifs</h2>
-      <p>Nombre total : {sortedAssets.length}</p>
 
-      {/* ===== SORT OPTIONS ===== */}
-      <div style={{ marginBottom: 10 }}>
-        <label>
-          <input
-            type="checkbox"
-            checked={sortEnabled}
-            onChange={() => setSortEnabled((v) => !v)}
-          />
-          Activer le tri
-        </label>
+      <AssetsTable
+        assets={paginatedAssets}
+        sorts={sorts}
+        onSortChange={handleSortChange}
+      />
 
-        {sortEnabled && (
-          <>
-            <select
-              value={sortField}
-              onChange={(e) => setSortField(e.target.value)}
-            >
-              <option value="hostname">Hostname</option>
-              <option value="ip_address">IP</option>
-              <option value="os">OS</option>
-              <option value="status">Status</option>
-            </select>
-
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-            >
-              <option value="asc">Asc</option>
-              <option value="desc">Desc</option>
-            </select>
-          </>
-        )}
-      </div>
-
-      {/* ===== TABLE ===== */}
-      <AssetsTable assets={paginatedAssets} />
-
-      {/* ===== PAGINATION ===== */}
       <div style={{ marginTop: 10 }}>
-        <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+        <button disabled={page === 1} onClick={() => handlePageChange(page - 1)}>
           ◀
         </button>
-
         <span style={{ margin: "0 10px" }}>
           Page {page} / {totalPages}
         </span>
-
         <button
           disabled={page === totalPages}
-          onClick={() => setPage(p => p + 1)}
+          onClick={() => handlePageChange(page + 1)}
         >
           ▶
         </button>

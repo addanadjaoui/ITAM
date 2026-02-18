@@ -11,8 +11,9 @@ const root = createRoot(rootElement);
 
 root.render(
   <BrowserRouter>
-    <AppProvider>
+    <AppProvider> 
       <App />
     </AppProvider>
   </BrowserRouter>
 );
+

@@ -87,7 +87,7 @@ def get_assets(search="", page=1, limit=20, sort="id"):
                 hostname ILIKE %s
                 OR ip_address::text ILIKE %s
                 OR os ILIKE %s
-            ORDER BY last_seen DESC
+            ORDER BY ip_address
             LIMIT %s OFFSET %s
         """, (
             f"%{search}%",

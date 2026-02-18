@@ -1,37 +1,34 @@
 import React from "react";
 
-export default function AssetsTable({ assets }) {
-  if (!assets || assets.length === 0) {
-    return (
-      <p
-        style={{
-          textAlign: "center",
-          padding: "14px",
-          background: "#f9fafb",
-          border: "1px dashed #d1d5db",
-          borderRadius: "6px",
-          color: "#ef4444",
-        }}
-      >
-        Aucun actif trouvé
-      </p>
-    );
-  }
+export default function AssetsTable({ assets, sorts, onSortChange }) {
+  const indicator = (field) => {
+    const i = sorts.findIndex((s) => s.field === field);
+    if (i === -1) return "";
+    return sorts[i].order === "asc" ? ` ▲${i + 1}` : ` ▼${i + 1}`;
+  };
 
   return (
     <table className="assets-table">
       <thead>
         <tr>
-          <th>Hostname</th>
-          <th>OS</th>
-          <th>Status</th>
+          <th onClick={(e) => onSortChange("hostname", e.shiftKey)}>
+            Hostname{indicator("hostname")}
+          </th>
+          <th onClick={(e) => onSortChange("os", e.shiftKey)}>
+            OS{indicator("os")}
+          </th>
+          <th onClick={(e) => onSortChange("status", e.shiftKey)}>
+            Status{indicator("status")}
+          </th>
           <th>Source</th>
-          <th>IP Address</th>
+          <th onClick={(e) => onSortChange("ip_address", e.shiftKey)}>
+            IP{indicator("ip_address")}
+          </th>
         </tr>
       </thead>
       <tbody>
         {assets.map((a) => (
-          <tr key ={`${a.hostname}-${a.ip_address}`}>
+          <tr key={`${a.hostname}-${a.ip_address}`}>
             <td>{a.hostname}</td>
             <td>{a.os}</td>
             <td>{a.status}</td>
