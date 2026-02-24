@@ -1,39 +1,47 @@
-import React from "react";
+/**
+ * ITAM Enterprise Frontend
+ * File: AssetsTable.js
+ * Version: Alpha v0.1.0
+ * Status: Experimental
+ * Features:
+ * - Affichage tableau
+ * - Tri par clic sur colonnes
+ * - Édition inline via EditableCell
+ */
 
-export default function AssetsTable({ assets, sorts, onSortChange }) {
-  const indicator = (field) => {
-    const i = sorts.findIndex((s) => s.field === field);
-    if (i === -1) return "";
-    return sorts[i].order === "asc" ? ` ▲${i + 1}` : ` ▼${i + 1}`;
+// VERSION ALPHA gestion du tri multi-cololnnes
+// src/components/AssetsTable.js
+import React from "react";
+import EditableCell from "./EditableCell";
+
+export default function AssetsTable({ assets, sorts, onSortChange, refresh }) {
+  const handleSort = (field) => {
+    const existing = sorts.find((s) => s.field === field);
+    let newOrder = "asc";
+    if (existing) newOrder = existing.order === "asc" ? "desc" : "asc";
+    onSortChange([{ field, order: newOrder }]);
   };
 
   return (
-    <table className="assets-table">
+    <table className="assets-table" border="1" cellPadding="5" style={{ borderCollapse: "collapse", width: "100%" }}>
       <thead>
         <tr>
-          <th onClick={(e) => onSortChange("hostname", e.shiftKey)}>
-            Hostname{indicator("hostname")}
-          </th>
-          <th onClick={(e) => onSortChange("os", e.shiftKey)}>
-            OS{indicator("os")}
-          </th>
-          <th onClick={(e) => onSortChange("status", e.shiftKey)}>
-            Status{indicator("status")}
-          </th>
-          <th>Source</th>
-          <th onClick={(e) => onSortChange("ip_address", e.shiftKey)}>
-            IP{indicator("ip_address")}
-          </th>
+          {["hostname", "ip_address", "os", "status", "source"].map((col) => (
+            <th key={col} onClick={() => handleSort(col)} style={{ cursor: "pointer" }}>
+              {col.charAt(0).toUpperCase() + col.slice(1)}{" "}
+              {sorts[0]?.field === col ? (sorts[0].order === "asc" ? "⇅" : "⇵") : ""}
+            </th>
+          ))}
         </tr>
       </thead>
       <tbody>
-        {assets.map((a) => (
-          <tr key={`${a.hostname}-${a.ip_address}`}>
-            <td>{a.hostname}</td>
-            <td>{a.os}</td>
-            <td>{a.status}</td>
-            <td>{a.source || "manual"}</td>
-            <td>{a.ip_address}</td>
+        {assets.map((asset) => (
+          <tr key={asset.id}>
+            <EditableCell asset={asset} field="hostname" refresh={refresh} />
+            <EditableCell asset={asset} field="ip_address" refresh={refresh} />
+            <EditableCell asset={asset} field="os" refresh={refresh} />
+            <EditableCell asset={asset} field="status" refresh={refresh} />
+            <EditableCell asset={asset} field="source" refresh={refresh} />
           </tr>
         ))}
       </tbody>

@@ -17,6 +17,8 @@ export default function App() {
         <Route path="/assets" element={<AssetsPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/deploy" element={<DeployPage />} />
+        {/* Ì†ΩÌ¥ê Catch-all pour √©viter les 404 */}
+        <Route path="*" element={<Navigate to="/assets" replace />} />
       </Routes>
     </MainLayout>
   );

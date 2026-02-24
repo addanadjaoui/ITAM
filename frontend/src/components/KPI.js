@@ -1,19 +1,19 @@
+// VERSION ALPHA
+// src/components/KPI.js
 import React, { useEffect, useState } from "react";
-
-const API = "http://192.168.56.110:8000/api/assets";
+import { fetchKPI } from "../api/assets.api";
 
 export default function KPI() {
-  const [kpi, setKpi] = useState({});
+  const [kpi, setKpi] = useState({ total: 0, non_compliant: 0, conformity: 0 });
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`${API}`)
-      .then(res => res.json())
-      .then(data => {
-        const total = data.length;
-        const non_compliant = data.filter(a => a.status !== "in_use").length;
-        setKpi({ total, non_compliant, conformity: Math.round((total - non_compliant)/total*100) });
-      });
+    fetchKPI()
+      .then(setKpi)
+      .catch(err => setError(err.message));
   }, []);
+
+  if (error) return <p style={{ color: "red" }}>Erreur : {error}</p>;
 
   return (
     <div>

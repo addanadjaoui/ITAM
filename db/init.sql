@@ -12,7 +12,7 @@ CREATE TABLE users (
 CREATE TABLE assets (
   id SERIAL PRIMARY KEY,
   hostname VARCHAR UNIQUE,
-  type VARCHAR,
+  asset_type VARCHAR,
   ip_address VARCHAR,
   manufacturer VARCHAR,
   model VARCHAR,
@@ -26,7 +26,7 @@ CREATE TABLE assets (
 );
 
 CREATE TABLE licenses (
-  id SERIAL PRIMARY KEY,
+  id SERIAL  PRIMARY KEY,
   name VARCHAR,
   vendor VARCHAR,
   total_seats INT,
@@ -35,12 +35,12 @@ CREATE TABLE licenses (
 );
 
 CREATE TABLE asset_licenses (
-  asset_id INT REFERENCES assets(id),
+  asset_id IN T REFERENCES assets(id),
   license_id INT REFERENCES licenses(id)
 );
 
 CREATE TABLE compliance_snapshots (
-  id SERIAL PRIMARY KEY,
+  id SERIAL PR IMARY KEY,
   asset_id INT REFERENCES assets(id),
   compliant BOOLEAN,
   reason TEXT,
@@ -48,7 +48,7 @@ CREATE TABLE compliance_snapshots (
 );
 
 CREATE TABLE audit_logs (
-  id SERIAL PRIMARY KEY,
+  id SERIAL PRI MARY KEY,
   user_id INT REFERENCES users(id),
   action VARCHAR,
   entity VARCHAR,
@@ -57,7 +57,7 @@ CREATE TABLE audit_logs (
 );
 
 CREATE TABLE discovery_runs (
-  id SERIAL PRIMARY KEY,
+  id SERIAL PRIM ARY KEY,
   method VARCHAR,
   started_at TIMESTAMP,
   finished_at TIMESTAMP,
@@ -65,7 +65,7 @@ CREATE TABLE discovery_runs (
 );
 
 -- Sample assets
-INSERT INTO assets (hostname, type, ip_address, os, source) VALUES
+INSERT INTO assets (hostname, asset_type, ip_address, os, source) VALUES
 ('srv-db-01','server','192.168.56.110','Ubuntu 22.04','manual'),
 ('pc-user-01','pc','10.14.14.134','Windows 10','manual'),
 ('srv-old-01','server','172.16.41.107','CentOS 7','manual');

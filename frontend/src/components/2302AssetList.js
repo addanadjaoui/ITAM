@@ -12,11 +12,10 @@
 
 
 // VERSION ALPHA MULTI-TRI Compatible Backend
-// src/components/AssetList.js
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AssetsTable from "./AssetsTable";
-import { fetchAssets } from "../api/assets.api";
+import { API_BASE_URL } from "../api/config";
 
 export default function AssetList({ searchTerm = "" }) {
   const [assets, setAssets] = useState([]);
@@ -28,6 +27,7 @@ export default function AssetList({ searchTerm = "" }) {
   const pageFromUrl = parseInt(searchParams.get("page")) || 1;
   const [page, setPage] = useState(pageFromUrl);
 
+  // tri multi-colonnes
   const sortFromUrl = searchParams.get("sort");
   const [sorts, setSorts] = useState(
     sortFromUrl
@@ -41,13 +41,22 @@ export default function AssetList({ searchTerm = "" }) {
   const [limit, setLimit] = useState(10);
   const totalPages = Math.ceil(total / limit);
 
+  // í ½í´„ Charger assets
   useEffect(() => {
-    async function load() {
+    async function loadAssets() {
       try {
         setLoading(true);
         setError(null);
-        const sortParam = sorts.map((s) => (s.order === "desc" ? `-${s.field}` : s.field)).join(",");
-        const data = await fetchAssets({ page, limit, sort: sortParam, search: searchTerm });
+
+        // GÃ©nÃ©rer string compatible backend
+        const sortParam = sorts
+          .map((s) => (s.order === "desc" ? `-${s.field}` : s.field))
+          .join(",");
+
+        const res = await fetch(
+          `${API_BASE_URL}/assets?page=${page}&limit=${limit}&sort=${sortParam}&search=${searchTerm}`
+        );
+        const data = await res.json();
         setAssets(data.data || []);
         setTotal(data.total || 0);
       } catch (err) {
@@ -56,27 +65,36 @@ export default function AssetList({ searchTerm = "" }) {
         setLoading(false);
       }
     }
-    load();
+    loadAssets();
   }, [page, sorts, searchTerm, limit]);
 
+  // Pagination
   const handlePageChange = (newPage) => {
     setPage(newPage);
     const params = new URLSearchParams(searchParams);
     params.set("page", newPage);
     if (sorts.length) {
-      params.set("sort", sorts.map((s) => (s.order === "desc" ? `-${s.field}` : s.field)).join(","));
+      params.set(
+        "sort",
+        sorts.map((s) => (s.order === "desc" ? `-${s.field}` : s.field)).join(",")
+      );
     }
     setSearchParams(params);
   };
 
+  // Changement du tri
   const handleSortChange = (newSorts) => {
     setSorts(newSorts);
     const params = new URLSearchParams(searchParams);
-    params.set("sort", newSorts.map((s) => (s.order === "desc" ? `-${s.field}` : s.field)).join(","));
+    params.set(
+      "sort",
+      newSorts.map((s) => (s.order === "desc" ? `-${s.field}` : s.field)).join(",")
+    );
     params.set("page", page);
     setSearchParams(params);
   };
 
+  // Limite
   const handleLimitChange = (e) => {
     setLimit(parseInt(e.target.value));
     setPage(1);
@@ -99,7 +117,12 @@ export default function AssetList({ searchTerm = "" }) {
         </select>
       </label>
 
-      <AssetsTable assets={assets} sorts={sorts} onSortChange={handleSortChange} refresh={() => setPage(page)} />
+      <AssetsTable
+        assets={assets}
+        sorts={sorts}
+        onSortChange={handleSortChange}
+        refresh={() => setPage(page)}
+      />
 
       <div style={{ marginTop: 10 }}>
         <button disabled={page === 1} onClick={() => handlePageChange(page - 1)}>â—€</button>
